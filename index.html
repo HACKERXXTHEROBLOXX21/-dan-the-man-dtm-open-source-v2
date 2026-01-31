@@ -5,19 +5,26 @@
   <title>Dan The Man – Web</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
 
-  <div id="ui">
+<body>
+  <header id="topbar">
     <button id="playBtn">PLAY</button>
     <button id="buildBtn">BUILD MODE</button>
     <button id="exportBtn">EXPORT DTM</button>
 
+    <input type="file" id="importDTM" accept=".dtm" />
     <input type="file" id="midiInput" accept=".mid,.midi" />
     <button id="playMidiBtn">▶ PLAY MIDI</button>
+  </header>
+
+  <div id="hud">
+    <div>COINS: <span id="coinCount">0</span></div>
+    <div>MODE: <span id="modeText">PLAY</span></div>
   </div>
 
-  <canvas id="game" width="960" height="540"></canvas>
+  <canvas id="gameCanvas" width="960" height="540"></canvas>
 
+  <script src="https://cdn.jsdelivr.net/npm/soundfont-player@0.15.7/dist/soundfont-player.min.js"></script>
   <script src="main.js"></script>
 </body>
 </html>
