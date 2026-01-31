@@ -1,111 +1,108 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-function resize(){
-  canvas.width = innerWidth;
-  canvas.height = innerHeight;
-}
-addEventListener("resize", resize);
-resize();
-
-const keys = {};
-addEventListener("keydown", e => keys[e.key]=true);
-addEventListener("keyup", e => keys[e.key]=false);
-
-function img(src){ const i=new Image(); i.src=src; return i; }
-
-const sprites = {
-  dan: img("assets/sprites/dan_walk.png"),
-  enemy: img("assets/sprites/baton_guard_enemy_run.png"),
-  enemyDead: img("assets/sprites/baton_guard_enemy_died.png"),
-  ground: img("assets/sprites/title_ground.png"),
-  coin: img("assets/sprites/coin.png")
-};
-
 let mode = "play";
 
-const player = {x:100,y:0,w:48,h:48,vx:0,vy:0,facing:1,onGround:false};
-const gravity = 0.8;
+const playerImg = new Image();
+playerImg.src = "assets/sprites/dan_idle.png";
 
-let level = {
-  groundY: 500,
-  coins: [{x:300,y:460}],
-  enemies: [{x:600,y:452,dead:false}]
+const enemyImg = new Image();
+enemyImg.src = "assets/sprites/baton_guard_enemy_idle.png";
+
+const coinImg = new Image();
+coinImg.src = "assets/sprites/coin.png";
+
+const groundImg = new Image();
+groundImg.src = "assets/sprites/title_ground.png";
+
+const player = {
+  x: 200,
+  y: 360,
+  w: 32,
+  h: 32,
+  coins: 0
 };
 
-document.getElementById("buildBtn").onclick=()=>mode="build";
-document.getElementById("playBtn").onclick=()=>mode="play";
+let coins = [];
+for (let i = 0; i < 20; i++) {
+  coins.push({
+    x: 100 + Math.random() * 700,
+    y: 200 + Math.random() * 150,
+    taken: false
+  });
+}
 
-document.getElementById("exportBtn").onclick=()=>{
-  const data = JSON.stringify(level);
-  const blob = new Blob([data], {type:"application/json"});
+/* ---------- UI ---------- */
+document.getElementById("playBtn").onclick = () => mode = "play";
+document.getElementById("buildBtn").onclick = () => mode = "build";
+
+document.getElementById("exportBtn").onclick = () => {
+  const data = JSON.stringify({ coins });
+  const blob = new Blob([data], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = "dtmcustomlevel1.dtm";
   a.click();
 };
 
-document.getElementById("importBtn").onchange=e=>{
-  const r=new FileReader();
-  r.onload=()=>level=JSON.parse(r.result);
-  r.readAsText(e.target.files[0]);
+/* ---------- MIDI (placeholder hook) ---------- */
+document.getElementById("playMidiBtn").onclick = () => {
+  alert("MIDI loaded (SoundFont hookup next)");
 };
 
-canvas.onclick=e=>{
-  if(mode!=="build")return;
-  level.coins.push({x:e.offsetX,y:e.offsetY});
-};
+/* ---------- Controls ---------- */
+const keys = {};
+window.addEventListener("keydown", e => keys[e.key] = true);
+window.addEventListener("keyup", e => keys[e.key] = false);
 
-function update(){
-  if(mode==="play"){
-    player.vx=0;
-    if(keys["ArrowLeft"]){player.vx=-5;player.facing=-1;}
-    if(keys["ArrowRight"]){player.vx=5;player.facing=1;}
-    if(keys["x"]&&player.onGround){player.vy=-14;player.onGround=false;}
-    player.vy+=gravity;
-    player.x+=player.vx;
-    player.y+=player.vy;
+/* ---------- Game Loop ---------- */
+function update() {
+  if (mode === "play") {
+    if (keys["ArrowLeft"]) player.x -= 3;
+    if (keys["ArrowRight"]) player.x += 3;
 
-    if(player.y+player.h>=level.groundY){
-      player.y=level.groundY-player.h;
-      player.vy=0;
-      player.onGround=true;
-    }
-
-    if(keys["z"]){
-      level.enemies.forEach(e=>{
-        if(!e.dead && Math.abs(player.x-e.x)<50) e.dead=true;
-      });
-    }
+    coins.forEach(c => {
+      if (!c.taken &&
+        player.x < c.x + 16 &&
+        player.x + 32 > c.x &&
+        player.y < c.y + 16 &&
+        player.y + 32 > c.y
+      ) {
+        c.taken = true;
+        player.coins++;
+      }
+    });
   }
 }
 
-function draw(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.drawImage(sprites.ground,0,level.groundY,canvas.width,120);
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  level.coins.forEach(c=>ctx.drawImage(sprites.coin,c.x,c.y,24,24));
+  // ground
+  ctx.drawImage(groundImg, 0, 420, canvas.width, 32);
 
-  level.enemies.forEach(e=>{
-    const s=e.dead?sprites.enemyDead:sprites.enemy;
-    ctx.drawImage(s,e.x,e.y,48,48);
+  // coins
+  coins.forEach(c => {
+    if (!c.taken) ctx.drawImage(coinImg, c.x, c.y, 16, 16);
   });
 
-  ctx.save();
-  ctx.translate(player.x+24,player.y);
-  ctx.scale(player.facing,1);
-  ctx.drawImage(sprites.dan,-24,0,48,48);
-  ctx.restore();
+  // player
+  ctx.drawImage(playerImg, player.x, player.y, player.w, player.h);
 
-  if(mode==="build"){
-    ctx.fillStyle="black";
-    ctx.fillText("BUILD MODE: click to add coins",20,80);
-  }
+  // enemy demo
+  ctx.drawImage(enemyImg, 500, 360, 32, 32);
+
+  // HUD
+  ctx.font = "10px PressStart";
+  ctx.fillStyle = "#000";
+  ctx.fillText(`COINS: ${player.coins}`, 12, 20);
+  ctx.fillText(`MODE: ${mode.toUpperCase()}`, 12, 36);
 }
 
-function loop(){
+function loop() {
   update();
   draw();
   requestAnimationFrame(loop);
 }
+
 loop();
