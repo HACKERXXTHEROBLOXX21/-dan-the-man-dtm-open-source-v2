@@ -1,22 +1,23 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Dan The Man – Web Open Source</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>Dan The Man – Web</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<div id="top-ui">
-  <button id="playBtn">PLAY</button>
-  <button id="buildBtn">BUILD MODE</button>
-  <button id="exportBtn">EXPORT .DTM</button>
-  <input type="file" id="importBtn" accept=".dtm">
-</div>
+  <div id="ui">
+    <button id="playBtn">PLAY</button>
+    <button id="buildBtn">BUILD MODE</button>
+    <button id="exportBtn">EXPORT DTM</button>
 
-<canvas id="game"></canvas>
+    <input type="file" id="midiInput" accept=".mid,.midi" />
+    <button id="playMidiBtn">▶ PLAY MIDI</button>
+  </div>
 
-<script src="https://unpkg.com/soundfont-player@0.15.7/dist/soundfont-player.js"></script>
-<script src="main.js"></script>
+  <canvas id="game" width="960" height="540"></canvas>
+
+  <script src="main.js"></script>
 </body>
 </html>
